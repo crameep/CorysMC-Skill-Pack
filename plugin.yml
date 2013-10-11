@@ -1,0 +1,4 @@
+name: CorysSkillPack
+version: 0.1
+main: com.cory.Skills.SkillPack
+depend: [SkillAPI]
