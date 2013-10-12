@@ -2,6 +2,7 @@ package com.cory.Skills;
 
 import java.util.List;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -60,35 +61,42 @@ public class Dash extends ClassSkill implements SkillShot {
      * @return       true
      */
     @Override
-    public boolean cast(Player player, int level) {
+    public boolean cast(final Player player, int level) {
 
-        int speed = getAttribute(SPEED, level);
-        int radius = getAttribute(RADIUS, level);
+        final int speed = getAttribute(SPEED, level);
+        final int radius = getAttribute(RADIUS, level);
        
-        int damage = getAttribute(DAMAGE, level);
+        final int damage = getAttribute(DAMAGE, level);
         boolean worked = false;
-        Vector direction = player.getLocation().getDirection();
+        Vector direction = player.getLocation().getDirection().normalize();
         Vector velocity = direction.multiply(speed / direction.length());
         velocity.setY(velocity.getY() / 5);
         player.setVelocity(velocity);
-        List<Entity> list = player.getNearbyEntities(radius, radius, radius);        
-        for (Entity entity : list) {
-            if (entity instanceof LivingEntity) {
-                LivingEntity target = (LivingEntity)entity;
+        Bukkit.getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
+        	public void run() {
+        	
+                List<Entity> list = player.getNearbyEntities(radius, radius, radius);        
+                for (Entity entity : list) {
+                    if (entity instanceof LivingEntity) {
+                        LivingEntity target = (LivingEntity)entity;
 
-                // Make sure the target can be attacked
-                if (target instanceof Player && !Protection.canAttack(player, (Player)target))
-                    continue;
+                        // Make sure the target can be attacked
+                        if (target instanceof Player && !Protection.canAttack(player, (Player)target))
+                            continue;
 
-                target.damage(damage, player);
-                Vector velocity1 = target.getLocation().subtract(player.getLocation()).toVector();
-                velocity1.multiply(speed / velocity1.length());
-                velocity1.setY(velocity1.getY() / 5 + 0.5);
-                target.setVelocity(velocity1);
-                worked = true;
-            }
-        }
+                        target.damage(damage, player);
+                        Vector velocity1 = target.getLocation().subtract(player.getLocation()).toVector().normalize();
+                        velocity1.multiply(speed / velocity1.length());
+                        velocity1.setY(velocity1.getY() / 5 + 0.5);
+                        target.setVelocity(velocity1);
+                       
+                    }
+                }
+        		
+        	}
+        }, 20 * 1);
 
-        return worked;
+
+        return true;
     }
 }
